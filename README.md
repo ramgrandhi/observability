@@ -4,7 +4,7 @@ Deploys an event-driven (a.k.a. distributed) stack on AWS, generates some logs a
 
 ## Design
 
-![Sagas](./res/flows-connected.png)
+![Sagas](./assets/flows-connected.png)
 
 ### Triggers
 
