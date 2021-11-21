@@ -1,0 +1,20 @@
+Resources:
+  Flow1:
+    Type: "AWS::StepFunctions::StateMachine"
+    Properties:
+      StateMachineName: ${self:service}-flow1
+      DefinitionString: ${file(./flow1/saga/infra/stepfunctions.js):definitionString}
+      # Gotcha!
+      # Unfortunately, AWS CloudFormation only accepts the entire Step Function definition as a single-line JSON string,
+      # hence, it is not very convenient to make changes to it in future if we do it that way.
+      # To overcome this limiation, we are using Serverless Variables feature here by pre-processing a good-looking JSON into a single-line JSON with the help of dashboard.js.
+      # More at: https://www.serverless.com/framework/docs/providers/aws/guide/variables/#reference-variables-in-javascript-files
+
+      # Gotcha!
+      # For a better DevXP, saga.json file can be live-viewed in VS Code using the following plug-in
+      # https://marketplace.visualstudio.com/items?itemName=paulshestakov.aws-step-functions-constructor
+
+      RoleArn: !GetAtt Flow1Role.Arn
+      DefinitionSubstitutions:
+        lambda1Arn: !GetAtt Lambda1LambdaFunction.Arn
+        topicArn: !Ref EventTopic1

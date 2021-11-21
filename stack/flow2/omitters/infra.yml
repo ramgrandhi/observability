@@ -1,0 +1,11 @@
+Resources:
+  DLQ2:
+    Type: AWS::SQS::Queue
+    Properties:
+      DelaySeconds: 0
+      QueueName: "FLOW_TWO_DLQ_QUEUE"
+  MDLQ2:
+    Type: AWS::SQS::Queue
+    Properties:
+      DelaySeconds: 0
+      QueueName: "FLOW_TWO_MDLQ_QUEUE"

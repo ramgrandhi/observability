@@ -1,0 +1,10 @@
+Resources:
+  EventTopic1:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: "FLOW_ONE_COMPLETED_TOPIC"
+      FifoTopic: false
+      TopicName: "FLOW_ONE_COMPLETED_TOPIC"
+      KmsMasterKeyId: alias/${self:service}-encryption-key
+      # Good to know : AWS SNS does encryption-in-transit 'by default' over TLS.
+      # By using customer-managed key (see above), we enabled encryption-at-rest as well (Server-side encryption).

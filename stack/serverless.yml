@@ -1,0 +1,101 @@
+service: my-observability-stack
+
+useDotenv: true
+variablesResolutionMode: 20210326
+
+custom:
+  aws:
+    vpcId: ${env:AWS_VPC_ID}
+  esbuild:
+    minify: false
+    bundle: true
+    watch:
+      pattern: ["./**/*.ts"]
+      ignore: [".serverless/**/*", ".build", ".esbuild"]
+    packager: yarn # npm add, ad see later
+
+provider:
+  name: aws
+  region: ${env:AWS_DEFAULT_REGION}
+  runtime: nodejs12.x
+  stackName: ${self:service}
+  lambdaHashingVersion: "20201221"
+
+plugins:
+  - serverless-esbuild
+
+package:
+  individually: true
+
+functions:
+  - ${file(./flow1/triggers/handler.yml)}
+  - ${file(./flow1/saga/steps/Lambda1/handler.yml)}
+  - ${file(./flow2/triggers/handler.yml)}
+  - ${file(./flow2/saga/steps/Lambda2/handler.yml)}
+
+resources:
+  - ${file(./flow1/triggers/infra.yml)}
+  - ${file(./flow1/saga/infra/roles.yml)}
+  - ${file(./flow1/saga/infra/stepfunctions.yml)}
+  - ${file(./flow1/saga/steps/Lambda1/infra.yml)}
+  - ${file(./flow1/emitters/infra.yml)}
+  - ${file(./flow1/omitters/infra.yml)}
+  - ${file(./flow2/triggers/infra.yml)}
+  - ${file(./flow2/saga/infra/roles.yml)}
+  - ${file(./flow2/saga/infra/stepfunctions.yml)}
+  - ${file(./flow2/saga/steps/Lambda2/infra.yml)}
+  - ${file(./flow2/emitters/infra.yml)}
+  - ${file(./flow2/omitters/infra.yml)}
+  - Resources:
+      DataEncryptionKey:
+        Type: AWS::KMS::Key
+        Properties:
+          Description: "Symmetric Key used to achieve Server-side Encryption of supported AWS Services (SQS, SNS etc)"
+          Enabled: true
+          EnableKeyRotation: true
+          KeyPolicy:
+            Version: "2012-10-17"
+            Id: access-permissions
+            Statement:
+              - Sid: "Allow access to all users and roles"
+                Effect: Allow
+                Principal:
+                  AWS: "*"
+                Action: kms:*
+                Resource: "*"
+              - Sid: "Allow use of the key by StepFunctions Service"
+                Effect: Allow
+                Principal:
+                  Service: sns.amazonaws.com
+                Action:
+                  - kms:GenerateDataKey
+                  - kms:Decrypt
+                Resource: "*"
+              - Sid: "Allow use of the key by StepFunctions individual steps"
+                Effect: Allow
+                Principal:
+                  AWS:
+                    - !GetAtt Flow1Role.Arn
+                    - !GetAtt Flow2Role.Arn
+                Action:
+                  - kms:GenerateDataKey
+                  - kms:Decrypt
+                Resource: "*"
+              - Sid: "Allow use of the key by Trigger Lambdas"
+                Effect: Allow
+                Principal:
+                  AWS:
+                    - !GetAtt TriggerLambda1Role.Arn
+                    - !GetAtt TriggerLambda2Role.Arn
+                Action:
+                  - kms:GenerateDataKey
+                  - kms:Decrypt
+                Resource: "*"
+          KeySpec: SYMMETRIC_DEFAULT
+          KeyUsage: ENCRYPT_DECRYPT
+          PendingWindowInDays: 7
+      DataEncryptionKeyAlias:
+        Type: AWS::KMS::Alias
+        Properties:
+          AliasName: alias/${self:service}-encryption-key
+          TargetKeyId: !Ref DataEncryptionKey

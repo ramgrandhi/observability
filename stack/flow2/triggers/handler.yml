@@ -1,0 +1,18 @@
+# referenced in ../serverless.yml
+
+TriggerLambda2:
+  handler: flow2/triggers/index.handler
+  events:
+    - sqs: 
+        arn: !GetAtt TriggerQueue2.Arn
+        batchSize: 1
+  role: !GetAtt TriggerLambda2Role.Arn
+  # vpc:
+  #   securityGroupIds:
+  #     - !Ref TriggerLambda2SecurityGroup
+  #   subnetIds:
+  #     - !ImportValue privateSubnet1-dev
+  #     - !ImportValue privateSubnet2-dev
+  #     - !ImportValue privateSubnet3-dev
+  environment:
+    STATE_MACHINE_ARN: !Ref Flow2 # Gotcha! - Ability to refer ARN of Step Function as a part of same-stack was missing in `serverless-step-functions` plugin, hence the choice of NOT using it.

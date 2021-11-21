@@ -1,0 +1,15 @@
+# referenced in ../serverless.yml
+
+Lambda1:
+  handler: flow1/saga/steps/Lambda1/index.handler
+  dependsOn:
+    # - Lambda1SecurityGroup
+    - Lambda1Role
+  role: !GetAtt Lambda1Role.Arn
+  # vpc:
+  #   securityGroupIds:
+  #     - !Ref Lambda1SecurityGroup
+  #   subnetIds:
+  #     - !ImportValue privateSubnet1-dev
+  #     - !ImportValue privateSubnet2-dev
+  #     - !ImportValue privateSubnet3-dev

@@ -1,0 +1,41 @@
+Resources:
+  Flow2Role:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ${self:provider.stackName}-flow2Role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: states.${aws:region}.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: root
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - sns:Publish
+                Resource: "*"
+              # Good to know : Step Function's IAM role needs to have the following KMS permissions
+              # on AWS-Managed Key in order to be able to publish to an encrypted SNS topic successfully.
+              - Effect: Allow
+                Action:
+                  - kms:GenerateDataKey
+                  - kms:Decrypt
+                Resource:
+                  - arn:aws:kms:${aws:region}:${aws:accountId}:alias/${self:service}-encryption-key
+              # Good to know : Step Function's IAM role needs to have the following KMS permissions
+              # on AWS-Managed Key in order to be able to publish to an encrypted SNS topic successfully.
+              - Effect: Allow
+                Action:
+                  - kms:GenerateDataKey
+                  - kms:Decrypt
+                Resource:
+                  - arn:aws:kms:${aws:region}:${aws:accountId}:alias/${self:service}-encryption-key

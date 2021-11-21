@@ -1,0 +1,41 @@
+{
+  "Comment": "Flow2",
+  "StartAt": "Invoke Lambda2",
+  "States": {
+    "Invoke Lambda2": {
+      "Type": "Task",
+      "Resource": "${lambda2Arn}",
+      "ResultPath": "$.steps.Lambda2",
+      "Next": "Emit Event",
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "Catch All"
+        }
+      ]
+    },
+    "Emit Event": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Parameters": {
+        "TopicArn": "${topicArn}",
+        "Message.$": "$",
+        "MessageAttributes": {
+          "attr1": {
+            "DataType": "String",
+            "StringValue": "value1"
+          }
+        }
+      },
+      "End": true
+    },
+    "Catch All": {
+      "Type": "Pass",
+      "Next": "Push To DLQ"
+    },
+    "Push To DLQ": {
+      "Type": "Pass",
+      "End": true
+    }
+  }
+}
