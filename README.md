@@ -39,10 +39,12 @@ They handle all omissions (read as errors & exceptions).
 
 ## Deploy
 
-- Configure `stack/.env` file with your specific values
+- `cd stack`
+- Configure `.env` file with your specific values
 - `yarn`
 - `yarn deploy`
 
 ## Test
 
+- `cd stack`
 - `yarn test`
